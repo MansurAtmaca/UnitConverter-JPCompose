@@ -1,9 +1,7 @@
 package com.example.unitconverter
 
 import android.annotation.SuppressLint
-import android.graphics.drawable.Icon
 import android.os.Bundle
-import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.Arrangement
@@ -13,6 +11,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material3.Button
@@ -26,15 +25,18 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.geometry.times
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.unitconverter.ui.theme.UnitConverterTheme
+import kotlin.time.times
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -55,46 +57,114 @@ class MainActivity : ComponentActivity() {
 
 @SuppressLint("UnrememberedMutableState")
 @Composable
-fun UnitConverter(){
-    val toast= LocalContext.current
-    var dropDownMenu1 by mutableStateOf(false)
-    Column (modifier = Modifier
-        .fillMaxSize(),
+fun UnitConverter() {
+    var inputDropdownMenu by mutableStateOf(false)
+    var outputDropdownMenu by mutableStateOf(false)
+    var inputUnit by remember { mutableStateOf("Select") }
+    var ouputUnit by remember { mutableStateOf("Select") }
+    var inputValue by remember { mutableStateOf("") }
+    var inputRatio by remember { mutableStateOf(0.0) }
+    var outputRatio by remember { mutableStateOf(0.0) }
+    var result by remember {
+        mutableStateOf(0.0)
+    }
+    fun calculateRatio(number:Int):Double{
+        val number = inputValue.toInt()
+        val result = (number * inputRatio)/outputRatio;
+        return result
+
+    }
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
-    ){
+    ) {
         Text(text = "Unit Converter", fontWeight = FontWeight.Bold, fontSize = 24.sp)
-        OutlinedTextField(modifier = Modifier.padding(16.dp), value = "Text", onValueChange = {})
+        OutlinedTextField(
+            modifier = Modifier.padding(16.dp),
+            value = inputValue,
+            onValueChange = { inputValue = it },
+            label = { Text(text = "Enter value") },
+            keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Decimal)
+        )
         Row {
-            Button(onClick = { dropDownMenu1 = !dropDownMenu1}) {
-               Row {
-                   Text(text = "Select")
-                   Icon(Icons.Default.ArrowDropDown,contentDescription = null)
-               }
-                DropdownMenu(expanded = dropDownMenu1, onDismissRequest = { /*TODO*/ }) {
-                    DropdownMenuItem(text = { Text(text ="Centimeter")  },
-                        onClick = { /*TODO*/ })
-                    DropdownMenuItem(text = { Text(text ="Milimeter")  },
-                        onClick = { /*TODO*/ })
-                    DropdownMenuItem(text = { Text(text ="Feet")  },
-                        onClick = { /*TODO*/ })
+            // Input Button
+            Button(onClick = { inputDropdownMenu = true }) {
+                Row {
+                    Text(text = inputUnit)
+                    Icon(Icons.Default.ArrowDropDown, contentDescription = null)
+                }
+                DropdownMenu(
+                    expanded = inputDropdownMenu,
+                    onDismissRequest = { inputDropdownMenu = false }) {
+                    DropdownMenuItem(
+                        text = { Text(text = "Milimeter") },
+                        onClick = {
+                            inputUnit = "Milimeter"
+                            inputDropdownMenu = false
+                            inputRatio = 0.001
+                        })
+                    DropdownMenuItem(text = { Text(text = "Centimeter") },
+                        onClick = {
+                            inputUnit = "Centimeter"
+                            inputDropdownMenu = false
+                            inputRatio = 0.01
+                        })
+                    DropdownMenuItem(text = { Text(text = "Meter") },
+                        onClick = {
+                            inputUnit = "Meter"
+                            inputDropdownMenu = false
+                            inputRatio = 1.0
+                        })
                 }
             }
             Spacer(modifier = Modifier.width(16.dp))
-            Button(onClick = { /*TODO*/ }) {
+            // Output Button
+            Button(onClick = { outputDropdownMenu = true }) {
                 Row {
-                    Text(text = "Select")
-                    Icon(Icons.Default.ArrowDropDown,contentDescription = null)
+                    Text(text = ouputUnit)
+                    Icon(Icons.Default.ArrowDropDown, contentDescription = null)
+                }
+                DropdownMenu(
+                    expanded = outputDropdownMenu,
+                    onDismissRequest = { outputDropdownMenu = false }) {
+                    DropdownMenuItem(text = { Text(text = "Milimeter") }, onClick = {
+                        ouputUnit = "Milimeter"
+                        outputDropdownMenu = false
+                        outputRatio = 0.001
+                    })
+                    DropdownMenuItem(text = { Text(text = "Centimeter") }, onClick = {
+                        ouputUnit = "Centimeter"
+                        outputDropdownMenu = false
+                        outputRatio = 0.01
+                    })
+                    DropdownMenuItem(text = { Text(text = "Meter") }, onClick = {
+                        ouputUnit = "Meter"
+                        outputDropdownMenu = false
+                        outputRatio = 1.0
+                    })
+
                 }
             }
         }
-        Text(text = "Result :", fontSize = 24.sp)
+        Button(
+            onClick = { result=calculateRatio(inputValue.toInt()) }) {
+        Text(text = "DO")
+        }
+
+        Text(text = "Result : ${result.toInt()} ", fontSize = 24.sp)
 
     }
+
+
 }
+
+
 
 @Preview(showSystemUi = true)
 @Composable
-fun UnitConverterPreview(){
+fun UnitConverterPreview() {
     UnitConverter()
 }
